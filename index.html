@@ -1,0 +1,107 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motivate Me</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <video id="background-video" autoplay muted loop playsinline>
+        <source src="./background.mp4.mp4" type="video/mp4">
+    </video>
+
+    <div class="overlay"></div>
+
+    <main class="container">
+        <h1>Motivate Me</h1>
+
+        <p>What do you want to do?</p>
+
+        <input
+            id="goalInput"
+            type="text"
+            placeholder="Promise me you won’t do it."
+        >
+
+        <button id="motivateButton">Motivate Me</button>
+
+        <div id="result"></div>
+    </main>
+
+    <script>
+        const button = document.getElementById("motivateButton");
+        const input = document.getElementById("goalInput");
+        const result = document.getElementById("result");
+
+        button.addEventListener("click", async function () {
+
+            const goal = input.value.trim();
+
+            if (goal === "") {
+                result.textContent = "قولّي عايز تعمل إيه الأول.";
+                input.focus();
+                return;
+            }
+
+            button.disabled = true;
+            input.disabled = true;
+            button.textContent = "Thinking...";
+
+            const isArabic = /[\u0600-\u06FF]/.test(goal);
+
+            result.textContent = isArabic
+                ? "جاري تجهيز الرد..."
+                : "Generating your motivation...";
+
+            try {
+
+                const response = await fetch("/api/motivate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        goal: goal
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Something went wrong.");
+                }
+
+                result.textContent = data.motivation;
+
+            } catch (error) {
+
+                console.error(error);
+
+                result.textContent =
+                    "حصل خطأ، جرّب تاني.";
+
+            } finally {
+
+                button.disabled = false;
+                input.disabled = false;
+                button.textContent = "Motivate Me";
+
+            }
+        });
+
+        input.addEventListener("keydown", function (event) {
+
+            if (event.key === "Enter") {
+                button.click();
+            }
+
+        });
+    </script>
+
+</body>
+</html>
+```
